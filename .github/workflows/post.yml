@@ -1,19 +1,48 @@
 name: Post to Telegram
+
 on:
+  push:
+    branches: [ main ]
   schedule:
-    - cron: '0 9 * * *'  # каждый день в 9:00 UTC (12:00 по Лиссабону)
-  workflow_dispatch:       # и возможность запустить вручную
+    - cron: '0 9 */3 * *'
+  workflow_dispatch:
 
 jobs:
   post:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install groq requests python-dotenv
-      - run: python agent.py
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install groq requests python-dotenv
+      
+      - name: Debug network (optional)
+        run: |
+          echo "Testing connection to Groq API..."
+          curl -I https://api.groq.com --max-time 10 || echo "Connection test failed, but continuing..."
+      
+      - name: Run agent with retry
+        run: |
+          for i in 1 2 3 4 5; do
+            echo "Attempt $i/5..."
+            python agent.py && break
+            if [ $i -lt 5 ]; then
+              echo "Attempt $i failed, retrying in 15 seconds..."
+              sleep 15
+            else
+              echo "All 5 attempts failed"
+              exit 1
+            fi
+          done
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
