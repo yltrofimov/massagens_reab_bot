@@ -50,21 +50,30 @@ def generate_post(topic):
         messages=[{
             "role": "user",
             "content": (
-                "Ты - опытный массажист и реабилитолог с 15-летним стажем. "
-                "Ведёшь Telegram-канал для людей которые хотят заботиться о своём теле.\n\n"
+                "Ты - опытный массажист и реабилитолог с 15-летним стажем, эксперт в анатомии "
+                "и кинезиологии. Ведёшь профессиональный Telegram-канал для людей которые хотят "
+                "заботиться о своём теле.\n\n"
                 f"Напиши пост на тему: {topic}\n\n"
                 "Структура поста:\n"
                 "1. Цепляющее начало - 1-2 предложения которые сразу захватывают внимание\n"
-                "2. Объяснение проблемы - почему это происходит, что происходит в теле\n"
-                "3. Практическое решение - конкретные техники пошагово\n"
+                "2. Объяснение проблемы - используй точную анатомическую терминологию (названия мышц, "
+                "связок, суставов на русском с латинскими терминами в скобках где уместно, например "
+                "'трапециевидная мышца (m. trapezius)')\n"
+                "3. Практическое решение - конкретные техники пошагово, с профессиональными терминами "
+                "(например 'триггерная точка', 'миофасциальный релиз', 'постизометрическая релаксация', "
+                "'фасциальное натяжение')\n"
                 "4. Важное предупреждение - когда стоит обратиться к специалисту\n"
                 "5. Хештеги - 5-6 штук по теме\n\n"
                 "Требования:\n"
                 "- Максимум 900 символов, не больше\n"
-                "- Пиши как живой человек, не как учебник\n"
-                "- Конкретика: не просто 'делайте упражнения' а 'надавите большим пальцем на точку под лопаткой и держите 30 секунд'\n"
+                "- Пиши языком профессионала который общается с осведомлённой аудиторией - "
+                "используй корректную медицинскую и анатомическую терминологию, но объясняй сложные "
+                "термины простыми словами в той же фразе\n"
+                "- Конкретика: указывай точную локализацию (например 'у основания черепа, в зоне "
+                "затылочной кости') и точные техники воздействия\n"
                 "- 2-3 эмодзи уместно по тексту\n"
-                "- Читатель должен узнать что-то новое и сразу захотеть попробовать"
+                "- Тон уверенного эксперта, не учебника и не разговорного блога\n"
+                "- Читатель-профессионал должен оценить точность, а читатель-новичок все равно понять суть"
             )
         }]
     )
@@ -88,7 +97,46 @@ def get_image(topic):
         "мышцы": "muscle massage",
         "триггер": "trigger point massage",
         "противопоказан": "massage therapy",
-        "самомассаж": "self massage"
+        "самомассаж": "self massage",
+        "масло": "massage oil",
+        "крем": "massage cream",
+        "эфирн": "essential oils spa",
+        "аромат": "aromatherapy oils",
+        "аллерги": "skin allergy test",
+        "гель": "cooling gel",
+        "грязи": "spa mud treatment",
+        "водоросл": "seaweed spa",
+        "бальзам": "massage balm",
+        "баночк": "spa bottles",
+        "тейп": "kinesiology tape",
+        "вакуумн": "cupping therapy",
+        "сумка": "massage therapist kit",
+        "беремен": "pregnancy massage",
+        "детск": "baby massage",
+        "ребенк": "infant massage",
+        "варикоз": "leg massage therapy",
+        "онколог": "oncology care",
+        "сколиоз": "spine therapy",
+        "плоскостоп": "foot arch support",
+        "седалищн": "sciatica treatment",
+        "глаз": "eye relaxation",
+        "тейпирован": "kinesiology taping",
+        "рубц": "scar tissue massage",
+        "гуаша": "gua sha facial",
+        "роллер": "foam roller exercise",
+        "программист": "office posture",
+        "лимфедем": "lymphatic drainage",
+        "невралги": "nerve pain therapy",
+        "эндопротезирован": "joint replacement recovery",
+        "инструментальн": "IASTM tool massage",
+        "радикулит": "lower back pain",
+        "инсульт": "stroke rehabilitation",
+        "обувь": "footwear posture",
+        "theragun": "massage gun device",
+        "пистолет": "massage gun device",
+        "книжн": "anatomy book",
+        "квалификац": "physiotherapy training",
+        "ковид": "breathing exercise recovery"
     }
     query = "massage therapy"
     for key, value in translations.items():
@@ -195,7 +243,6 @@ if __name__ == "__main__":
         for update in updates:
             offset = update["update_id"] + 1
 
-            # Нажата кнопка
             if "callback_query" in update:
                 cb = update["callback_query"]
                 if str(cb["from"]["id"]) != str(MODERATOR_ID):
@@ -203,7 +250,6 @@ if __name__ == "__main__":
 
                 data = cb["data"]
 
-                # Проверяем что кнопка от текущей сессии
                 if not data.endswith(session_id):
                     answer_callback(cb["id"])
                     continue
@@ -231,7 +277,6 @@ if __name__ == "__main__":
                     print("Пост отклонён.")
                     exit()
 
-            # Пришёл отредактированный текст
             elif "message" in update and waiting_for_edit:
                 msg = update["message"]
                 if str(msg["from"]["id"]) != str(MODERATOR_ID):
