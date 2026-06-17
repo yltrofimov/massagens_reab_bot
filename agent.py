@@ -92,194 +92,192 @@ def generate_post(topic):
                 raise
 
 def get_image(topic):
-    translations = {
-        # === ОСНОВНЫЕ ТЕМЫ ===
-        "шея": "neck massage",
-        "шейн": "neck massage",
-        "поясниц": "back pain massage",
-        "стоп": "foot massage",
-        "голеностоп": "ankle rehabilitation",
-        "реабилитац": "physical rehabilitation",
-        "массаж": "massage therapy",
-        "плеч": "shoulder massage",
-        "спин": "back massage",
-        "колен": "knee rehabilitation",
-        "рук": "hand massage",
-        "осанк": "posture correction",
-        "мышц": "muscle massage",
-        "триггер": "trigger point massage",
-        "самомассаж": "self massage",
-        "масл": "massage oil",
-        "крем": "massage cream",
-        "эфирн": "essential oils spa",
-        "аромат": "aromatherapy oils",
-        "аллерг": "skin allergy test",
-        "гель": "cooling gel",
-        "гряз": "spa mud treatment",
-        "водоросл": "seaweed spa",
-        "бальзам": "massage balm",
-        "баночк": "spa bottles",
-        "тейп": "kinesiology tape",
-        "вакуумн": "cupping therapy",
-        "сумк": "massage therapist kit",
-        "беремен": "pregnancy massage",
-        "детск": "baby massage",
-        "ребенк": "infant massage",
-        "варикоз": "leg massage therapy",
-        "онколог": "oncology care",
-        "сколиоз": "spine therapy",
-        "плоскостоп": "foot arch support",
-        "седалищн": "sciatica treatment",
-        "глаз": "eye relaxation",
-        "тейпирован": "kinesiology taping",
-        "рубц": "scar tissue massage",
-        "роллер": "foam roller exercise",
-        "программист": "office posture",
-        "лимфедем": "lymphatic drainage",
-        "невралг": "nerve pain therapy",
-        "эндопротезирован": "joint replacement recovery",
-        "инструментальн": "IASTM tool massage",
-        "радикулит": "lower back pain",
-        "инсульт": "stroke rehabilitation",
-        "обув": "footwear posture",
-        "theragun": "massage gun device",
-        "пистолет": "massage gun device",
-        "книжн": "anatomy book",
-        "квалификац": "physiotherapy training",
-        "ковид": "breathing exercise recovery",
-        
-        # === НЕВРОЛОГИЯ И РЕАБИЛИТАЦИЯ ===
-        "дцп": "child cerebral palsy rehabilitation",
-        "церебральн": "cerebral palsy rehabilitation",
-        "постинсульт": "stroke rehabilitation therapy",
-        "невролог": "neurological rehabilitation",
-        "миофасциальн": "myofascial release therapy",
-        "постизометрическ": "post-isometric relaxation",
-        "фасциальн": "fascial massage therapy",
-        "релиз": "myofascial release",
-        
-        # === ТРАВМЫ ===
-        "перелом": "fracture rehabilitation",
-        "лодыжк": "ankle injury rehabilitation",
-        "мениск": "knee meniscus rehabilitation",
-        "растяжени": "muscle strain rehabilitation",
-        "связк": "ligament injury rehabilitation",
-        "травм": "injury rehabilitation therapy",
-        "гипс": "cast removal rehabilitation",
-        "хлыстов": "whiplash rehabilitation",
-        "бедр": "thigh muscle rehabilitation",
-        "пахов": "groin strain rehabilitation",
-        "локт": "elbow injury therapy",
-        "теннис": "tennis elbow therapy",
-        
-        # === БОЛИ ===
-        "головн": "headache relief massage",
-        "судорог": "muscle cramp relief",
-        "бессонниц": "insomnia relief massage",
-        "стресс": "stress relief massage",
-        "бруксизм": "jaw tension relief",
-        "челюст": "jaw massage therapy",
-        "тазобедрен": "hip joint therapy",
-        "лопатк": "shoulder blade massage",
-        "крест": "lower back massage",
-        "защем": "nerve compression therapy",
-        "седалищ": "sciatica relief",
-        
-        # === ТЕХНИКИ ===
-        "гуаша": "gua sha facial massage",
-        "ia stm": "IASTM tool therapy",
-        "релаксац": "relaxation massage",
-        "дренажн": "lymphatic drainage massage",
-        "разогрев": "warming massage therapy",
-        "охлажда": "cooling gel therapy",
-        "точечн": "acupressure massage",
-        "точечный": "acupressure massage",
-        
-        # === УХОД ===
-        "кож": "skin care therapy",
-        "чистк": "cleaning massage tools",
-        "дезинфицир": "disinfecting massage tools",
-        "гигиен": "massage hygiene",
-        "руки массажист": "massage therapist hands",
-        
-        # === СПОРТ ===
-        "бег": "running massage therapy",
-        "спортивн": "sports massage therapy",
-        "растяжк": "stretching exercises",
-        "лфк": "physical therapy exercises",
-        "упражнени": "physical therapy exercises",
-        "гимнастик": "exercise therapy",
-        "двигательн": "motor skills therapy",
-        "восстановлени": "physical rehabilitation",
-        
-        # === ОБУЧЕНИЕ ===
-        "атлас": "anatomy atlas",
-        "учебник": "anatomy textbook",
-        "курс": "massage training course",
-        "тестировани": "muscle testing therapy",
-        "викторин": "anatomy quiz",
-        "диагноз": "medical diagnosis",
-        "разбор": "medical case study",
-        
-        # === ПРОФЕССИОНАЛЬНОЕ ===
-        "кабинет": "massage therapy room",
-        "стол": "massage table",
-        "массажист": "professional massage therapist",
-        "инструмент": "massage tools",
-        "оборудовани": "massage equipment",
-        "чек-лист": "massage therapist checklist",
-        "гайд": "massage therapy guide",
-        "совет": "massage tips",
-        "ошибк": "massage mistakes",
-        "миф": "massage myths",
-        
-        # === БЕЗОПАСНОСТЬ ===
-        "противопоказан": "massage contraindications",
-        "безопасн": "safe massage practice",
-        "травма": "injury prevention",
-        "запрет": "massage restrictions",
-        "против": "massage contraindications",
-        
-        # === ОБЩИЕ ===
-        "вопрос": "massage therapy Q&A",
-        "ответ": "massage therapy Q&A",
-        "истори": "massage therapy success story",
-        "практик": "massage therapy practice",
-        "эффект": "massage therapy benefits",
-        "польз": "massage therapy benefits",
-        "техник": "massage techniques",
-        "метод": "massage methods",
-        "зона": "massage therapy zones",
-        "тело": "human body massage",
-        "сустав": "joint therapy massage",
-        "позвоночник": "spine therapy",
-        "диск": "spinal disc therapy",
-    }
-    
-    query = "massage therapy"
     topic_lower = topic.lower()
     
-    # Специальные случаи (приоритетные)
-    if "дцп" in topic_lower or "церебральн" in topic_lower:
-        query = "child physical therapy rehabilitation"
-    elif "инсульт" in topic_lower or "постинсульт" in topic_lower:
-        query = "stroke rehabilitation therapy"
-    elif "онколог" in topic_lower or "рак" in topic_lower:
-        query = "cancer care therapy"
-    elif "беремен" in topic_lower:
-        query = "pregnancy massage therapy"
-    elif "детск" in topic_lower or "ребенк" in topic_lower or "груднич" in topic_lower:
-        query = "baby massage therapy"
-    elif "спорт" in topic_lower or "бег" in topic_lower:
-        query = "sports massage therapy"
+    # === МЕДИЦИНСКИЕ/СЕРЬЁЗНЫЕ ТЕМЫ (абстрактные картинки) ===
+    medical_topics = [
+        "дцп", "церебральн", "инсульт", "постинсульт", "онколог", "рак",
+        "невролог", "реабилитац", "восстановлени", "двигательн",
+        "перелом", "травм", "мениск", "эндопротезирован", "сколиоз",
+        "лимфедем", "варикоз", "радикулит", "защем", "седалищ",
+        "нейропати", "паралич", "парез", "атрофи", "дистрофи",
+        "контрактур", "тугоподвижн", "спастик", "гипертонус"
+    ]
+    
+    for keyword in medical_topics:
+        if keyword in topic_lower:
+            medical_queries = [
+                "physical therapy rehabilitation",
+                "medical rehabilitation",
+                "therapy session medical",
+                "patient recovery",
+                "rehabilitation exercises",
+                "medical care professional",
+                "healing process medical",
+                "physiotherapy treatment",
+                "medical support care",
+                "rehabilitation center therapy"
+            ]
+            query = random.choice(medical_queries)
+            print(f"Searching Pexels for (medical): {query}")
+            break
     else:
-        for key, value in translations.items():
-            if key in topic_lower:
-                query = value
+        # === ДЕТСКИЕ ТЕМЫ ===
+        child_topics = ["детск", "ребенк", "груднич", "малыш", "ребёнок"]
+        for keyword in child_topics:
+            if keyword in topic_lower:
+                child_queries = [
+                    "baby massage therapy",
+                    "child massage",
+                    "infant massage",
+                    "baby care massage",
+                    "children therapy"
+                ]
+                query = random.choice(child_queries)
+                print(f"Searching Pexels for (child): {query}")
                 break
+            else:
+                # === СПОРТИВНЫЕ ТЕМЫ ===
+                sport_topics = ["спорт", "бег", "тренировк", "фитнес", "упражнени"]
+                for keyword in sport_topics:
+                    if keyword in topic_lower:
+                        sport_queries = [
+                            "sports massage therapy",
+                            "athlete recovery",
+                            "sports rehabilitation",
+                            "fitness massage",
+                            "post workout massage"
+                        ]
+                        query = random.choice(sport_queries)
+                        print(f"Searching Pexels for (sport): {query}")
+                        break
+                    else:
+                        # === ОБЫЧНЫЙ ПОИСК ПО СЛОВАРЮ ===
+                        translations = {
+                            "шея": "neck massage",
+                            "шейн": "neck massage",
+                            "поясниц": "back pain massage",
+                            "стоп": "foot massage",
+                            "голеностоп": "ankle rehabilitation",
+                            "массаж": "massage therapy",
+                            "плеч": "shoulder massage",
+                            "спин": "back massage",
+                            "колен": "knee rehabilitation",
+                            "рук": "hand massage",
+                            "осанк": "posture correction",
+                            "мышц": "muscle massage",
+                            "триггер": "trigger point massage",
+                            "самомассаж": "self massage",
+                            "масл": "massage oil",
+                            "крем": "massage cream",
+                            "эфирн": "essential oils spa",
+                            "аромат": "aromatherapy oils",
+                            "аллерг": "skin allergy test",
+                            "гель": "cooling gel",
+                            "гряз": "spa mud treatment",
+                            "водоросл": "seaweed spa",
+                            "бальзам": "massage balm",
+                            "баночк": "spa bottles",
+                            "тейп": "kinesiology tape",
+                            "вакуумн": "cupping therapy",
+                            "сумк": "massage therapist kit",
+                            "беремен": "pregnancy massage",
+                            "глаз": "eye relaxation",
+                            "тейпирован": "kinesiology taping",
+                            "рубц": "scar tissue massage",
+                            "роллер": "foam roller exercise",
+                            "программист": "office posture",
+                            "лимфедем": "lymphatic drainage",
+                            "невралг": "nerve pain therapy",
+                            "инструментальн": "IASTM tool massage",
+                            "радикулит": "lower back pain",
+                            "обув": "footwear posture",
+                            "theragun": "massage gun device",
+                            "пистолет": "massage gun device",
+                            "книжн": "anatomy book",
+                            "квалификац": "physiotherapy training",
+                            "ковид": "breathing exercise recovery",
+                            "миофасциальн": "myofascial release therapy",
+                            "постизометрическ": "post-isometric relaxation",
+                            "фасциальн": "fascial massage therapy",
+                            "релиз": "myofascial release",
+                            "головн": "headache relief massage",
+                            "судорог": "muscle cramp relief",
+                            "бессонниц": "insomnia relief massage",
+                            "стресс": "stress relief massage",
+                            "бруксизм": "jaw tension relief",
+                            "челюст": "jaw massage therapy",
+                            "тазобедрен": "hip joint therapy",
+                            "лопатк": "shoulder blade massage",
+                            "крест": "lower back massage",
+                            "гуаша": "gua sha facial massage",
+                            "релаксац": "relaxation massage",
+                            "дренажн": "lymphatic drainage massage",
+                            "разогрев": "warming massage therapy",
+                            "охлажда": "cooling gel therapy",
+                            "точечн": "acupressure massage",
+                            "кож": "skin care therapy",
+                            "чистк": "cleaning massage tools",
+                            "дезинфицир": "disinfecting massage tools",
+                            "гигиен": "massage hygiene",
+                            "растяжк": "stretching exercises",
+                            "лфк": "physical therapy exercises",
+                            "гимнастик": "exercise therapy",
+                            "атлас": "anatomy atlas",
+                            "учебник": "anatomy textbook",
+                            "курс": "massage training course",
+                            "тестировани": "muscle testing therapy",
+                            "викторин": "anatomy quiz",
+                            "диагноз": "medical diagnosis",
+                            "разбор": "medical case study",
+                            "кабинет": "massage therapy room",
+                            "стол": "massage table",
+                            "массажист": "professional massage therapist",
+                            "инструмент": "massage tools",
+                            "оборудовани": "massage equipment",
+                            "чек-лист": "massage therapist checklist",
+                            "гайд": "massage therapy guide",
+                            "совет": "massage tips",
+                            "ошибк": "massage mistakes",
+                            "миф": "massage myths",
+                            "противопоказан": "massage contraindications",
+                            "безопасн": "safe massage practice",
+                            "запрет": "massage restrictions",
+                            "против": "massage contraindications",
+                            "вопрос": "massage therapy Q&A",
+                            "ответ": "massage therapy Q&A",
+                            "истори": "massage therapy success story",
+                            "практик": "massage therapy practice",
+                            "эффект": "massage therapy benefits",
+                            "польз": "massage therapy benefits",
+                            "техник": "massage techniques",
+                            "метод": "massage methods",
+                            "зона": "massage therapy zones",
+                            "тело": "human body massage",
+                            "сустав": "joint therapy massage",
+                            "позвоночник": "spine therapy",
+                            "диск": "spinal disc therapy",
+                            "бедр": "thigh muscle rehabilitation",
+                            "пахов": "groin strain rehabilitation",
+                            "локт": "elbow injury therapy",
+                            "теннис": "tennis elbow therapy",
+                            "хлыстов": "whiplash rehabilitation",
+                            "гипс": "cast removal rehabilitation",
+                            "связк": "ligament injury rehabilitation",
+                            "растяжени": "muscle strain rehabilitation",
+                            "лодыжк": "ankle injury rehabilitation"
+                        }
+                        
+                        query = "massage therapy"
+                        for key, value in translations.items():
+                            if key in topic_lower:
+                                query = value
+                                print(f"Searching Pexels for (translation): {query}")
+                                break
+                        else:
+                            print(f"Searching Pexels for (default): {query}")
     
-    print(f"Searching Pexels for: {query}")
-    
+    # === ПОИСК В PEXELS ===
     headers = {"Authorization": os.getenv("PEXELS_API_KEY")}
     
     try:
@@ -296,16 +294,30 @@ def get_image(topic):
     except Exception as e:
         print(f"Pexels error: {e}")
     
-    try:
-        response = requests.get(
-            "https://api.pexels.com/v1/search?query=massage therapy&per_page=1",
-            headers=headers,
-            timeout=30
-        )
-        response.raise_for_status()
-        return response.json()["photos"][0]["src"]["medium"]
-    except:
-        return "https://images.pexels.com/photos/3822141/pexels-photo-3822141.jpeg"
+    # === FALLBACK (если ничего не нашлось) ===
+    fallback_queries = [
+        "massage therapy",
+        "healthcare professional",
+        "physical therapy",
+        "wellness massage"
+    ]
+    
+    for fallback_query in fallback_queries:
+        try:
+            response = requests.get(
+                f"https://api.pexels.com/v1/search?query={fallback_query}&per_page=1",
+                headers=headers,
+                timeout=30
+            )
+            response.raise_for_status()
+            data = response.json()
+            if data.get("photos"):
+                return data["photos"][0]["src"]["medium"]
+        except:
+            continue
+    
+    # Абсолютный fallback
+    return "https://images.pexels.com/photos/3822141/pexels-photo-3822141.jpeg"
 
 def send_message(chat_id, text):
     requests.post(
