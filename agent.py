@@ -7,7 +7,7 @@ import uuid
 from dotenv import load_dotenv
 from groq import Groq
 
-load_dotenv()
+load_dotenv()  # работает и локально, и на GitHub (если .env нет - просто использует os.environ)
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 MODERATOR_ID = os.getenv("MODERATOR_ID")
@@ -44,40 +44,52 @@ def return_topic(topic):
 
 def generate_post(topic):
     client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-    msg = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        max_tokens=1500,
-        messages=[{
-            "role": "user",
-            "content": (
-                "Ты - опытный массажист и реабилитолог с 15-летним стажем, эксперт в анатомии "
-                "и кинезиологии. Ведёшь профессиональный Telegram-канал для людей которые хотят "
-                "заботиться о своём теле.\n\n"
-                f"Напиши пост на тему: {topic}\n\n"
-                "Структура поста:\n"
-                "1. Цепляющее начало - 1-2 предложения которые сразу захватывают внимание\n"
-                "2. Объяснение проблемы - используй точную анатомическую терминологию (названия мышц, "
-                "связок, суставов на русском с латинскими терминами в скобках где уместно, например "
-                "'трапециевидная мышца (m. trapezius)')\n"
-                "3. Практическое решение - конкретные техники пошагово, с профессиональными терминами "
-                "(например 'триггерная точка', 'миофасциальный релиз', 'постизометрическая релаксация', "
-                "'фасциальное натяжение')\n"
-                "4. Важное предупреждение - когда стоит обратиться к специалисту\n"
-                "5. Хештеги - 5-6 штук по теме\n\n"
-                "Требования:\n"
-                "- Максимум 900 символов, не больше\n"
-                "- Пиши языком профессионала который общается с осведомлённой аудиторией - "
-                "используй корректную медицинскую и анатомическую терминологию, но объясняй сложные "
-                "термины простыми словами в той же фразе\n"
-                "- Конкретика: указывай точную локализацию (например 'у основания черепа, в зоне "
-                "затылочной кости') и точные техники воздействия\n"
-                "- 2-3 эмодзи уместно по тексту\n"
-                "- Тон уверенного эксперта, не учебника и не разговорного блога\n"
-                "- Читатель-профессионал должен оценить точность, а читатель-новичок все равно понять суть"
+    
+    for attempt in range(5):
+        try:
+            print(f"Generating post, attempt {attempt + 1}/5...")
+            msg = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                max_tokens=1500,
+                timeout=60.0,
+                messages=[{
+                    "role": "user",
+                    "content": (
+                        "Ты - опытный массажист и реабилитолог с 15-летним стажем, эксперт в анатомии "
+                        "и кинезиологии. Ведёшь профессиональный Telegram-канал для людей которые хотят "
+                        "заботиться о своём теле.\n\n"
+                        f"Напиши пост на тему: {topic}\n\n"
+                        "Структура поста:\n"
+                        "1. Цепляющее начало - 1-2 предложения которые сразу захватывают внимание\n"
+                        "2. Объяснение проблемы - используй точную анатомическую терминологию (названия мышц, "
+                        "связок, суставов на русском с латинскими терминами в скобках где уместно, например "
+                        "'трапециевидная мышца (m. trapezius)')\n"
+                        "3. Практическое решение - конкретные техники пошагово, с профессиональными терминами "
+                        "(например 'триггерная точка', 'миофасциальный релиз', 'постизометрическая релаксация', "
+                        "'фасциальное натяжение')\n"
+                        "4. Важное предупреждение - когда стоит обратиться к специалисту\n"
+                        "5. Хештеги - 5-6 штук по теме\n\n"
+                        "Требования:\n"
+                        "- Максимум 900 символов, не больше\n"
+                        "- Пиши языком профессионала который общается с осведомлённой аудиторией - "
+                        "используй корректную медицинскую и анатомическую терминологию, но объясняй сложные "
+                        "термины простыми словами в той же фразе\n"
+                        "- Конкретика: указывай точную локализацию (например 'у основания черепа, в зоне "
+                        "затылочной кости') и точные техники воздействия\n"
+                        "- 2-3 эмодзи уместно по тексту\n"
+                        "- Тон уверенного эксперта, не учебника и не разговорного блога\n"
+                        "- Читатель-профессионал должен оценить точность, а читатель-новичок все равно понять суть"
+                    )
+                }]
             )
-        }]
-    )
-    return msg.choices[0].message.content
+            return msg.choices[0].message.content
+        except Exception as e:
+            print(f"Attempt {attempt + 1}/5 failed: {e}")
+            if attempt < 4:
+                print("Retrying in 10 seconds...")
+                time.sleep(10)
+            else:
+                raise
 
 def get_image(topic):
     translations = {
@@ -145,20 +157,32 @@ def get_image(topic):
             break
 
     headers = {"Authorization": os.getenv("PEXELS_API_KEY")}
-    response = requests.get(
-        f"https://api.pexels.com/v1/search?query={query}&per_page=5",
-        headers=headers
-    )
-    data = response.json()
-    if data.get("photos"):
-        photo = random.choice(data["photos"])
-        return photo["src"]["medium"]
+    
+    try:
+        response = requests.get(
+            f"https://api.pexels.com/v1/search?query={query}&per_page=5",
+            headers=headers,
+            timeout=30
+        )
+        response.raise_for_status()
+        data = response.json()
+        if data.get("photos"):
+            photo = random.choice(data["photos"])
+            return photo["src"]["medium"]
+    except Exception as e:
+        print(f"Pexels error: {e}")
 
-    response = requests.get(
-        "https://api.pexels.com/v1/search?query=massage therapy&per_page=1",
-        headers=headers
-    )
-    return response.json()["photos"][0]["src"]["medium"]
+    # Fallback картинка если Pexels не ответил
+    try:
+        response = requests.get(
+            "https://api.pexels.com/v1/search?query=massage therapy&per_page=1",
+            headers=headers,
+            timeout=30
+        )
+        response.raise_for_status()
+        return response.json()["photos"][0]["src"]["medium"]
+    except:
+        return "https://images.pexels.com/photos/3822141/pexels-photo-3822141.jpeg"
 
 def send_message(chat_id, text):
     requests.post(
@@ -204,7 +228,8 @@ def get_updates(offset=None):
         params["offset"] = offset
     response = requests.get(
         f"https://api.telegram.org/bot{TOKEN}/getUpdates",
-        params=params
+        params=params,
+        timeout=30
     )
     return response.json().get("result", [])
 
@@ -215,7 +240,6 @@ def answer_callback(callback_id):
     )
 
 if __name__ == "__main__":
-    # Уникальный ID этой сессии - кнопки от прошлых запусков не сработают
     session_id = str(uuid.uuid4())[:8]
 
     print("Запуск агента...")
@@ -224,21 +248,41 @@ if __name__ == "__main__":
     print(f"Тема: {topic}")
 
     print("Генерирую пост...")
-    post = generate_post(topic)
-    print(f"Пост готов:\n{post}\n")
+    try:
+        post = generate_post(topic)
+        print(f"Пост готов:\n{post}\n")
+    except Exception as e:
+        print(f"Ошибка генерации поста: {e}")
+        send_message(MODERATOR_ID, f"❌ Ошибка генерации поста: {e}")
+        exit(1)
 
     print("Ищу картинку...")
     image_url = get_image(topic)
+    print(f"Картинка: {image_url}")
 
     print("Отправляю на проверку...")
     send_preview(MODERATOR_ID, post, image_url, session_id)
-    print("Жду твоего решения (без ограничения времени)...")
+    print("Жду твоего решения (максимум 5 часов)...")
 
     offset = None
     waiting_for_edit = False
+    start_time = time.time()
+    TIMEOUT = 18000  # 5 часов в секундах
 
     while True:
-        updates = get_updates(offset)
+        # Проверка таймаута (5 часов)
+        if time.time() - start_time > TIMEOUT:
+            send_message(MODERATOR_ID, "⏰ Время ожидания истекло (5 часов). Пост автоматически отклонён.")
+            return_topic(topic)
+            print("Timeout 5h - post rejected")
+            break
+
+        try:
+            updates = get_updates(offset)
+        except Exception as e:
+            print(f"Error getting updates: {e}")
+            time.sleep(5)
+            continue
 
         for update in updates:
             offset = update["update_id"] + 1
@@ -260,20 +304,20 @@ if __name__ == "__main__":
                 if action == "approve":
                     result = publish_to_channel(post, image_url)
                     if result.get("ok"):
-                        send_message(MODERATOR_ID, "Пост опубликован в канал!")
+                        send_message(MODERATOR_ID, "✅ Пост опубликован в канал!")
                         print("Опубликовано!")
                     else:
-                        send_message(MODERATOR_ID, f"Ошибка публикации: {result}")
+                        send_message(MODERATOR_ID, f"❌ Ошибка публикации: {result}")
                     exit()
 
                 elif action == "edit":
                     send_message(MODERATOR_ID,
-                        "Вот текст поста — отредактируй и отправь мне исправленную версию:\n\n" + post)
+                        "✏️ Вот текст поста — отредактируй и отправь мне исправленную версию:\n\n" + post)
                     waiting_for_edit = True
 
                 elif action == "reject":
                     return_topic(topic)
-                    send_message(MODERATOR_ID, "Пост пропущен, тема возвращена в очередь.")
+                    send_message(MODERATOR_ID, "❌ Пост пропущен, тема возвращена в очередь.")
                     print("Пост отклонён.")
                     exit()
 
@@ -284,5 +328,7 @@ if __name__ == "__main__":
                 if "text" in msg:
                     post = msg["text"]
                     waiting_for_edit = False
-                    send_message(MODERATOR_ID, "Получил! Показываю обновлённый пост...")
+                    send_message(MODERATOR_ID, "✅ Получил! Показываю обновлённый пост...")
                     send_preview(MODERATOR_ID, post, image_url, session_id)
+
+        time.sleep(1)
