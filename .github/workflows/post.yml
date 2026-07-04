@@ -49,4 +49,4 @@ jobs:
           MODERATOR_ID: ${{ secrets.MODERATOR_ID }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-        timeout-minutes: 60
+        timeout-minutes: 350
