@@ -266,7 +266,24 @@ def get_image(topic):
                             "гипс": "cast removal rehabilitation",
                             "связк": "ligament injury rehabilitation",
                             "растяжени": "muscle strain rehabilitation",
-                            "лодыжк": "ankle injury rehabilitation"
+                            "лодыжк": "ankle injury rehabilitation",
+                            "стоун": "hot stone massage therapy",
+                            "камн": "hot stone massage",
+                            "соль": "sea salt body scrub spa",
+                            "скраб": "body scrub spa treatment",
+                            "обёртыван": "body wrap spa treatment",
+                            "португал": "portugal spa wellness",
+                            "лиссабон": "lisbon spa wellness",
+                            "алгарв": "algarve portugal spa",
+                            "алентеж": "alentejo portugal nature",
+                            "пробков": "cork natural wellness",
+                            "термальн": "thermal spa portugal",
+                            "миндальн": "almond oil massage",
+                            "оливков": "olive oil massage",
+                            "монои": "monoi oil spa",
+                            "арган": "argan oil massage",
+                            "лаванд": "lavender essential oil",
+                            "мёд": "honey massage spa"
                         }
                         
                         query = "massage therapy"
