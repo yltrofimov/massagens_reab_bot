@@ -49,4 +49,6 @@ jobs:
           MODERATOR_ID: ${{ secrets.MODERATOR_ID }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         timeout-minutes: 350
