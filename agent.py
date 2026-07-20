@@ -7,44 +7,59 @@ import uuid
 from dotenv import load_dotenv
 from groq import Groq
 
-load_dotenv()  # работает и локально, и на GitHub (если .env нет - просто использует os.environ)
+load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 MODERATOR_ID = os.getenv("MODERATOR_ID")
 CHANNEL_ID = os.getenv("TELEGRAM_CHAT_ID")
+GIST_ID = os.getenv("GIST_ID")
+GIST_TOKEN = os.getenv("GIST_TOKEN")
+
+def read_used_from_gist():
+    try:
+        response = requests.get(
+            f"https://api.github.com/gists/{GIST_ID}",
+            headers={"Authorization": f"token {GIST_TOKEN}"},
+            timeout=15
+        )
+        content = response.json()["files"]["used.json"]["content"]
+        return json.loads(content)
+    except Exception as e:
+        print(f"Gist read error: {e}")
+        return []
+
+def write_used_to_gist(used):
+    try:
+        requests.patch(
+            f"https://api.github.com/gists/{GIST_ID}",
+            headers={"Authorization": f"token {GIST_TOKEN}"},
+            json={"files": {"used.json": {"content": json.dumps(used, ensure_ascii=False)}}},
+            timeout=15
+        )
+    except Exception as e:
+        print(f"Gist write error: {e}")
 
 def get_next_topic():
     with open("topics.json", encoding="utf-8") as f:
         topics = json.load(f)
-    try:
-        with open("used.json", encoding="utf-8") as f:
-            used = json.load(f)
-    except:
-        used = []
+    used = read_used_from_gist()
     remaining = [t for t in topics if t not in used]
     if not remaining:
         used = []
         remaining = topics
     topic = remaining[0]
     used.append(topic)
-    with open("used.json", "w", encoding="utf-8") as f:
-        json.dump(used, f, ensure_ascii=False)
+    write_used_to_gist(used)
     return topic
 
 def return_topic(topic):
-    try:
-        with open("used.json", encoding="utf-8") as f:
-            used = json.load(f)
-    except:
-        used = []
+    used = read_used_from_gist()
     if topic in used:
         used.remove(topic)
-    with open("used.json", "w", encoding="utf-8") as f:
-        json.dump(used, f, ensure_ascii=False)
+    write_used_to_gist(used)
 
 def generate_post(topic):
     client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-    
     for attempt in range(5):
         try:
             print(f"Generating post, attempt {attempt + 1}/5...")
@@ -94,8 +109,7 @@ def generate_post(topic):
 
 def get_image(topic):
     topic_lower = topic.lower()
-    
-    # === МЕДИЦИНСКИЕ/СЕРЬЁЗНЫЕ ТЕМЫ (абстрактные картинки) ===
+
     medical_topics = [
         "дцп", "церебральн", "инсульт", "постинсульт", "онколог", "рак",
         "невролог", "реабилитац", "восстановлени", "двигательн",
@@ -104,237 +118,156 @@ def get_image(topic):
         "нейропати", "паралич", "парез", "атрофи", "дистрофи",
         "контрактур", "тугоподвижн", "спастик", "гипертонус"
     ]
-    
+
+    query = None
+
     for keyword in medical_topics:
         if keyword in topic_lower:
-            medical_queries = [
+            query = random.choice([
                 "physical therapy rehabilitation",
                 "medical rehabilitation",
-                "therapy session medical",
-                "patient recovery",
-                "rehabilitation exercises",
-                "medical care professional",
-                "healing process medical",
                 "physiotherapy treatment",
-                "medical support care",
-                "rehabilitation center therapy"
-            ]
-            query = random.choice(medical_queries)
-            print(f"Searching Pexels for (medical): {query}")
+                "patient recovery",
+                "rehabilitation exercises"
+            ])
             break
-    else:
-        # === ДЕТСКИЕ ТЕМЫ ===
+
+    if not query:
         child_topics = ["детск", "ребенк", "груднич", "малыш", "ребёнок"]
         for keyword in child_topics:
             if keyword in topic_lower:
-                child_queries = [
+                query = random.choice([
                     "baby massage therapy",
-                    "child massage",
                     "infant massage",
-                    "baby care massage",
-                    "children therapy"
-                ]
-                query = random.choice(child_queries)
-                print(f"Searching Pexels for (child): {query}")
+                    "baby care massage"
+                ])
                 break
-            else:
-                # === СПОРТИВНЫЕ ТЕМЫ ===
-                sport_topics = ["спорт", "бег", "тренировк", "фитнес", "упражнени"]
-                for keyword in sport_topics:
-                    if keyword in topic_lower:
-                        sport_queries = [
-                            "sports massage therapy",
-                            "athlete recovery",
-                            "sports rehabilitation",
-                            "fitness massage",
-                            "post workout massage"
-                        ]
-                        query = random.choice(sport_queries)
-                        print(f"Searching Pexels for (sport): {query}")
-                        break
-                    else:
-                        # === ОБЫЧНЫЙ ПОИСК ПО СЛОВАРЮ ===
-                        translations = {
-                            "шея": "neck massage",
-                            "шейн": "neck massage",
-                            "поясниц": "back pain massage",
-                            "стоп": "foot massage",
-                            "голеностоп": "ankle rehabilitation",
-                            "массаж": "massage therapy",
-                            "плеч": "shoulder massage",
-                            "спин": "back massage",
-                            "колен": "knee rehabilitation",
-                            "рук": "hand massage",
-                            "осанк": "posture correction",
-                            "мышц": "muscle massage",
-                            "триггер": "trigger point massage",
-                            "самомассаж": "self massage",
-                            "масл": "massage oil",
-                            "крем": "massage cream",
-                            "эфирн": "essential oils spa",
-                            "аромат": "aromatherapy oils",
-                            "аллерг": "skin allergy test",
-                            "гель": "cooling gel",
-                            "гряз": "spa mud treatment",
-                            "водоросл": "seaweed spa",
-                            "бальзам": "massage balm",
-                            "баночк": "spa bottles",
-                            "тейп": "kinesiology tape",
-                            "вакуумн": "cupping therapy",
-                            "сумк": "massage therapist kit",
-                            "беремен": "pregnancy massage",
-                            "глаз": "eye relaxation",
-                            "тейпирован": "kinesiology taping",
-                            "рубц": "scar tissue massage",
-                            "роллер": "foam roller exercise",
-                            "программист": "office posture",
-                            "лимфедем": "lymphatic drainage",
-                            "невралг": "nerve pain therapy",
-                            "инструментальн": "IASTM tool massage",
-                            "радикулит": "lower back pain",
-                            "обув": "footwear posture",
-                            "theragun": "massage gun device",
-                            "пистолет": "massage gun device",
-                            "книжн": "anatomy book",
-                            "квалификац": "physiotherapy training",
-                            "ковид": "breathing exercise recovery",
-                            "миофасциальн": "myofascial release therapy",
-                            "постизометрическ": "post-isometric relaxation",
-                            "фасциальн": "fascial massage therapy",
-                            "релиз": "myofascial release",
-                            "головн": "headache relief massage",
-                            "судорог": "muscle cramp relief",
-                            "бессонниц": "insomnia relief massage",
-                            "стресс": "stress relief massage",
-                            "бруксизм": "jaw tension relief",
-                            "челюст": "jaw massage therapy",
-                            "тазобедрен": "hip joint therapy",
-                            "лопатк": "shoulder blade massage",
-                            "крест": "lower back massage",
-                            "гуаша": "gua sha facial massage",
-                            "релаксац": "relaxation massage",
-                            "дренажн": "lymphatic drainage massage",
-                            "разогрев": "warming massage therapy",
-                            "охлажда": "cooling gel therapy",
-                            "точечн": "acupressure massage",
-                            "кож": "skin care therapy",
-                            "чистк": "cleaning massage tools",
-                            "дезинфицир": "disinfecting massage tools",
-                            "гигиен": "massage hygiene",
-                            "растяжк": "stretching exercises",
-                            "лфк": "physical therapy exercises",
-                            "гимнастик": "exercise therapy",
-                            "атлас": "anatomy atlas",
-                            "учебник": "anatomy textbook",
-                            "курс": "massage training course",
-                            "тестировани": "muscle testing therapy",
-                            "викторин": "anatomy quiz",
-                            "диагноз": "medical diagnosis",
-                            "разбор": "medical case study",
-                            "кабинет": "massage therapy room",
-                            "стол": "massage table",
-                            "массажист": "professional massage therapist",
-                            "инструмент": "massage tools",
-                            "оборудовани": "massage equipment",
-                            "чек-лист": "massage therapist checklist",
-                            "гайд": "massage therapy guide",
-                            "совет": "massage tips",
-                            "ошибк": "massage mistakes",
-                            "миф": "massage myths",
-                            "противопоказан": "massage contraindications",
-                            "безопасн": "safe massage practice",
-                            "запрет": "massage restrictions",
-                            "против": "massage contraindications",
-                            "вопрос": "massage therapy Q&A",
-                            "ответ": "massage therapy Q&A",
-                            "истори": "massage therapy success story",
-                            "практик": "massage therapy practice",
-                            "эффект": "massage therapy benefits",
-                            "польз": "massage therapy benefits",
-                            "техник": "massage techniques",
-                            "метод": "massage methods",
-                            "зона": "massage therapy zones",
-                            "тело": "human body massage",
-                            "сустав": "joint therapy massage",
-                            "позвоночник": "spine therapy",
-                            "диск": "spinal disc therapy",
-                            "бедр": "thigh muscle rehabilitation",
-                            "пахов": "groin strain rehabilitation",
-                            "локт": "elbow injury therapy",
-                            "теннис": "tennis elbow therapy",
-                            "хлыстов": "whiplash rehabilitation",
-                            "гипс": "cast removal rehabilitation",
-                            "связк": "ligament injury rehabilitation",
-                            "растяжени": "muscle strain rehabilitation",
-                            "лодыжк": "ankle injury rehabilitation",
-                            "стоун": "hot stone massage therapy",
-                            "камн": "hot stone massage",
-                            "соль": "sea salt body scrub spa",
-                            "скраб": "body scrub spa treatment",
-                            "обёртыван": "body wrap spa treatment",
-                            "португал": "portugal spa wellness",
-                            "лиссабон": "lisbon spa wellness",
-                            "алгарв": "algarve portugal spa",
-                            "алентеж": "alentejo portugal nature",
-                            "пробков": "cork natural wellness",
-                            "термальн": "thermal spa portugal",
-                            "миндальн": "almond oil massage",
-                            "оливков": "olive oil massage",
-                            "монои": "monoi oil spa",
-                            "арган": "argan oil massage",
-                            "лаванд": "lavender essential oil",
-                            "мёд": "honey massage spa"
-                        }
-                        
-                        query = "massage therapy"
-                        for key, value in translations.items():
-                            if key in topic_lower:
-                                query = value
-                                print(f"Searching Pexels for (translation): {query}")
-                                break
-                        else:
-                            print(f"Searching Pexels for (default): {query}")
-    
-    # === ПОИСК В PEXELS ===
+
+    if not query:
+        sport_topics = ["спорт", "бег", "тренировк", "фитнес", "упражнени"]
+        for keyword in sport_topics:
+            if keyword in topic_lower:
+                query = random.choice([
+                    "sports massage therapy",
+                    "athlete recovery",
+                    "fitness massage"
+                ])
+                break
+
+    if not query:
+        translations = {
+            "стоун": "hot stone massage therapy",
+            "камн": "hot stone massage",
+            "соль": "sea salt body scrub spa",
+            "скраб": "body scrub spa treatment",
+            "обёртыван": "body wrap spa treatment",
+            "португал": "portugal spa wellness",
+            "лиссабон": "lisbon spa wellness",
+            "алгарв": "algarve portugal spa",
+            "алентеж": "alentejo portugal nature",
+            "пробков": "cork natural wellness",
+            "термальн": "thermal spa portugal",
+            "миндальн": "almond oil massage",
+            "оливков": "olive oil massage",
+            "монои": "monoi oil spa",
+            "арган": "argan oil massage",
+            "лаванд": "lavender essential oil",
+            "мёд": "honey massage spa",
+            "шея": "neck massage",
+            "шейн": "neck massage",
+            "поясниц": "back pain massage",
+            "стоп": "foot massage",
+            "голеностоп": "ankle rehabilitation",
+            "массаж": "massage therapy",
+            "плеч": "shoulder massage",
+            "спин": "back massage",
+            "колен": "knee rehabilitation",
+            "рук": "hand massage",
+            "осанк": "posture correction",
+            "мышц": "muscle massage",
+            "триггер": "trigger point massage",
+            "самомассаж": "self massage",
+            "масл": "massage oil",
+            "крем": "massage cream",
+            "эфирн": "essential oils spa",
+            "аромат": "aromatherapy oils",
+            "аллерг": "skin allergy test",
+            "гель": "cooling gel",
+            "гряз": "spa mud treatment",
+            "водоросл": "seaweed spa",
+            "бальзам": "massage balm",
+            "тейп": "kinesiology tape",
+            "вакуумн": "cupping therapy",
+            "беремен": "pregnancy massage",
+            "глаз": "eye relaxation",
+            "рубц": "scar tissue massage",
+            "роллер": "foam roller exercise",
+            "лимфедем": "lymphatic drainage",
+            "невралг": "nerve pain therapy",
+            "инструментальн": "IASTM tool massage",
+            "обув": "footwear posture",
+            "theragun": "massage gun device",
+            "пистолет": "massage gun device",
+            "миофасциальн": "myofascial release therapy",
+            "головн": "headache relief massage",
+            "судорог": "muscle cramp relief",
+            "бессонниц": "insomnia relief massage",
+            "стресс": "stress relief massage",
+            "бруксизм": "jaw tension relief",
+            "челюст": "jaw massage therapy",
+            "тазобедрен": "hip joint therapy",
+            "гуаша": "gua sha facial massage",
+            "дренажн": "lymphatic drainage massage",
+            "точечн": "acupressure massage",
+            "кож": "skin care therapy",
+            "гигиен": "massage hygiene",
+            "растяжк": "stretching exercises",
+            "гимнастик": "exercise therapy",
+            "массажист": "professional massage therapist",
+            "техник": "massage techniques",
+            "сустав": "joint therapy massage",
+            "позвоночник": "spine therapy",
+            "бедр": "thigh muscle rehabilitation",
+            "локт": "elbow injury therapy",
+            "теннис": "tennis elbow therapy",
+            "связк": "ligament injury rehabilitation",
+            "лодыжк": "ankle injury rehabilitation"
+        }
+        for key, value in translations.items():
+            if key in topic_lower:
+                query = value
+                break
+
+    if not query:
+        query = "massage therapy"
+
+    print(f"Searching Pexels for: {query}")
     headers = {"Authorization": os.getenv("PEXELS_API_KEY")}
-    
+
     try:
         response = requests.get(
             f"https://api.pexels.com/v1/search?query={query}&per_page=10",
-            headers=headers,
-            timeout=30
+            headers=headers, timeout=30
         )
         response.raise_for_status()
         data = response.json()
         if data.get("photos"):
-            photo = random.choice(data["photos"])
-            return photo["src"]["medium"]
+            return random.choice(data["photos"])["src"]["medium"]
     except Exception as e:
         print(f"Pexels error: {e}")
-    
-    # === FALLBACK (если ничего не нашлось) ===
-    fallback_queries = [
-        "massage therapy",
-        "healthcare professional",
-        "physical therapy",
-        "wellness massage"
-    ]
-    
-    for fallback_query in fallback_queries:
+
+    for fallback in ["massage therapy", "physical therapy", "wellness spa"]:
         try:
             response = requests.get(
-                f"https://api.pexels.com/v1/search?query={fallback_query}&per_page=1",
-                headers=headers,
-                timeout=30
+                f"https://api.pexels.com/v1/search?query={fallback}&per_page=1",
+                headers=headers, timeout=30
             )
-            response.raise_for_status()
             data = response.json()
             if data.get("photos"):
                 return data["photos"][0]["src"]["medium"]
         except:
             continue
-    
-    # Абсолютный fallback
+
     return "https://images.pexels.com/photos/3822141/pexels-photo-3822141.jpeg"
 
 def send_message(chat_id, text):
@@ -381,8 +314,7 @@ def get_updates(offset=None):
         params["offset"] = offset
     response = requests.get(
         f"https://api.telegram.org/bot{TOKEN}/getUpdates",
-        params=params,
-        timeout=30
+        params=params, timeout=35
     )
     return response.json().get("result", [])
 
@@ -394,7 +326,6 @@ def answer_callback(callback_id):
 
 if __name__ == "__main__":
     session_id = str(uuid.uuid4())[:8]
-
     print("Запуск агента...")
 
     topic = get_next_topic()
@@ -405,7 +336,7 @@ if __name__ == "__main__":
         post = generate_post(topic)
         print(f"Пост готов:\n{post}\n")
     except Exception as e:
-        print(f"Ошибка генерации поста: {e}")
+        print(f"Ошибка генерации: {e}")
         send_message(MODERATOR_ID, f"❌ Ошибка генерации поста: {e}")
         exit(1)
 
@@ -415,25 +346,24 @@ if __name__ == "__main__":
 
     print("Отправляю на проверку...")
     send_preview(MODERATOR_ID, post, image_url, session_id)
-    print("Жду твоего решения (максимум 5 часов)...")
+    print("Жду решения (максимум 5 часов)...")
 
     offset = None
     waiting_for_edit = False
     start_time = time.time()
-    TIMEOUT = 18000  # 5 часов в секундах
+    TIMEOUT = 18000
 
     while True:
-        # Проверка таймаута (5 часов)
         if time.time() - start_time > TIMEOUT:
-            send_message(MODERATOR_ID, "⏰ Время ожидания истекло (5 часов). Пост автоматически отклонён.")
+            send_message(MODERATOR_ID, "⏰ Время вышло (5 часов). Пост отклонён, тема возвращена в очередь.")
             return_topic(topic)
-            print("Timeout 5h - post rejected")
+            print("Timeout - rejected")
             break
 
         try:
             updates = get_updates(offset)
         except Exception as e:
-            print(f"Error getting updates: {e}")
+            print(f"Updates error: {e}")
             time.sleep(5)
             continue
 
@@ -444,13 +374,10 @@ if __name__ == "__main__":
                 cb = update["callback_query"]
                 if str(cb["from"]["id"]) != str(MODERATOR_ID):
                     continue
-
                 data = cb["data"]
-
                 if not data.endswith(session_id):
                     answer_callback(cb["id"])
                     continue
-
                 answer_callback(cb["id"])
                 action = data.replace(f"_{session_id}", "")
 
@@ -460,7 +387,7 @@ if __name__ == "__main__":
                         send_message(MODERATOR_ID, "✅ Пост опубликован в канал!")
                         print("Опубликовано!")
                     else:
-                        send_message(MODERATOR_ID, f"❌ Ошибка публикации: {result}")
+                        send_message(MODERATOR_ID, f"❌ Ошибка: {result}")
                     exit()
 
                 elif action == "edit":
@@ -471,7 +398,7 @@ if __name__ == "__main__":
                 elif action == "reject":
                     return_topic(topic)
                     send_message(MODERATOR_ID, "❌ Пост пропущен, тема возвращена в очередь.")
-                    print("Пост отклонён.")
+                    print("Отклонён.")
                     exit()
 
             elif "message" in update and waiting_for_edit:
