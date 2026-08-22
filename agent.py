@@ -64,7 +64,7 @@ def generate_post(topic):
         try:
             print(f"Generating post, attempt {attempt + 1}/5...")
             msg = client.chat.completions.create(
-                model="qwen/qwen3.6-27b",
+                model="openai/gpt-oss-20b",
                 max_tokens=1500,
                 timeout=60.0,
                 messages=[{
