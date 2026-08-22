@@ -64,7 +64,7 @@ def generate_post(topic):
         try:
             print(f"Generating post, attempt {attempt + 1}/5...")
             msg = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="llama-3.1-70b-versatile",
                 max_tokens=1500,
                 timeout=60.0,
                 messages=[{
